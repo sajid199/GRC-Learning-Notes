@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAP GRC Access Control – Learning Notes</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:     #1A73E8;
+      --blue-dk:  #1557B0;
+      --green:    #1E8E3E;
+      --orange:   #F29900;
+      --red:      #D93025;
+      --purple:   #7B1FA2;
+      --bg:       #F8F9FA;
+      --card:     #FFFFFF;
+      --border:   #E0E0E0;
+      --text:     #202124;
+      --text2:    #5F6368;
+      --tag-bg:   #E8F0FE;
+      --tag-txt:  #1A73E8;
+      --header-h: 56px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ===== TOP HEADER ===== */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--blue-dk);
+      color: #fff;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px;
+      height: var(--header-h);
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .site-header .logo { font-size: 20px; font-weight: 700; letter-spacing: .5px; flex: 1; }
+    .site-header .logo span { color: #FFD54F; }
+    .progress-pill {
+      background: rgba(255,255,255,.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    /* ===== TOC SIDEBAR (desktop) ===== */
+    .layout { display: flex; }
+
+    .toc {
+      display: none; /* hidden on mobile */
+      width: 240px;
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .toc h2 { font-size: 11px; text-transform: uppercase; color: var(--text2); padding: 0 16px 8px; letter-spacing: 1px; }
+    .toc a {
+      display: block; padding: 8px 16px;
+      color: var(--text2); text-decoration: none; font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: all .2s;
+    }
+    .toc a:hover, .toc a.active {
+      color: var(--blue); border-left-color: var(--blue);
+      background: var(--tag-bg);
+    }
+
+    @media (min-width: 900px) { .toc { display: block; } }
+
+    /* ===== MAIN CONTENT ===== */
+    .main { flex: 1; min-width: 0; padding: 20px 16px 60px; max-width: 860px; margin: 0 auto; }
+
+    /* ===== SECTION CARD ===== */
+    .section-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.10);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, var(--blue-dk) 0%, var(--blue) 100%);
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-header .num {
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .section-header h2 { font-size: 16px; font-weight: 600; flex: 1; }
+    .section-header .chevron { font-size: 18px; transition: transform .3s; }
+    .section-header.open .chevron { transform: rotate(180deg); }
+
+    .section-body { padding: 20px; display: none; }
+    .section-body.open { display: block; }
+
+    /* ===== STEP BLOCK ===== */
+    .step {
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .step-title {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .step-badge {
+      background: var(--blue);
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .step-badge.green  { background: var(--green); }
+    .step-badge.orange { background: var(--orange); color: #333; }
+    .step-badge.purple { background: var(--purple); }
+
+    .step h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+
+    .step p { color: var(--text2); margin-bottom: 8px; font-size: 14px; }
+    .step p:last-child { margin-bottom: 0; }
+
+    /* ===== PATH TRAIL ===== */
+    .path-trail {
+      background: #F1F3F4;
+      border-left: 3px solid var(--blue);
+      border-radius: 0 6px 6px 0;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+      color: var(--blue-dk);
+      margin: 8px 0;
+      word-break: break-all;
+    }
+
+    /* ===== TCODE PILL ===== */
+    .tcode {
+      display: inline-block;
+      background: #E8F0FE;
+      color: var(--blue-dk);
+      border: 1px solid #C5D8FB;
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 13px;
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    /* ===== INFO / WARN / TIP BOXES ===== */
+    .box {
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      font-size: 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .box .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .box.info   { background: #E8F0FE; border-left: 4px solid var(--blue); }
+    .box.warn   { background: #FEF3E2; border-left: 4px solid var(--orange); }
+    .box.tip    { background: #E6F4EA; border-left: 4px solid var(--green); }
+    .box.danger { background: #FCE8E6; border-left: 4px solid var(--red); }
+
+    /* ===== BULLET LIST ===== */
+    .note-list { list-style: none; margin: 8px 0; }
+    .note-list li {
+      padding: 5px 0 5px 22px;
+      position: relative;
+      font-size: 14px;
+      color: var(--text2);
+    }
+    .note-list li::before {
+      content: '▸';
+      position: absolute; left: 4px;
+      color: var(--blue);
+    }
+
+    /* ===== IMAGE BLOCK ===== */
+    .img-block {
+      margin: 14px 0;
+      text-align: center;
+    }
+    .img-block img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      cursor: zoom-in;
+      transition: transform .2s;
+    }
+    .img-block img:hover { transform: scale(1.01); }
+    .img-caption {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    /* ===== TABLE ===== */
+    .data-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    .data-table th {
+      background: var(--blue-dk); color: #fff;
+      padding: 8px 10px; text-align: left; font-weight: 600;
+    }
+    .data-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .data-table tr:nth-child(even) td { background: #F8F9FA; }
+    .data-table tr:hover td { background: var(--tag-bg); }
+
+    /* ===== TAGS ===== */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .tag {
+      background: var(--tag-bg);
+      color: var(--tag-txt);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ===== LIGHTBOX ===== */
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,.88);
+      align-items: center; justify-content: center;
+    }
+    .lightbox.show { display: flex; }
+    .lightbox img {
+      max-width: 96vw; max-height: 92vh;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    }
+    .lb-close {
+      position: absolute; top: 14px; right: 18px;
+      color: #fff; font-size: 32px; cursor: pointer;
+      line-height: 1; font-weight: 300;
+    }
+    .lb-caption {
+      position: absolute; bottom: 18px;
+      color: rgba(255,255,255,.8); font-size: 13px; text-align: center;
+      width: 100%;
+    }
+
+    /* ===== INTERVIEW Q BOX ===== */
+    .iq-box {
+      background: linear-gradient(135deg, #7B1FA2 0%, #9C27B0 100%);
+      color: #fff;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .iq-box .iq-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; opacity: .8; margin-bottom: 4px;
+    }
+    .iq-box .iq-q { font-weight: 600; margin-bottom: 6px; }
+    .iq-box .iq-a { opacity: .92; font-size: 13px; }
+
+    /* ===== PROGRESS BAR ===== */
+    #progress-bar {
+      position: fixed; top: 0; left: 0;
+      height: 3px; background: #FFD54F;
+      width: 0%; z-index: 200;
+      transition: width .2s;
+    }
+
+    /* ===== BACK TO TOP ===== */
+    #btt {
+      position: fixed; bottom: 20px; right: 16px;
+      background: var(--blue-dk);
+      color: #fff;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,.25);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+    }
+    #btt.show { opacity: 1; pointer-events: auto; }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      height: 1px; background: var(--border); margin: 20px 0;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(135deg, #1557B0 0%, #1A73E8 100%);
+      color: #fff;
+      border-radius: 14px;
+      padding: 28px 24px;
+      margin-bottom: 28px;
+    }
+    .hero h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .hero p  { font-size: 14px; opacity: .88; }
+    .hero .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .hero .hero-tag {
+      background: rgba(255,255,255,.18);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+    }
+
+    /* ===== FAIL CARDS ===== */
+    .fail-cards { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+    .fail-card {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: #FEF3E2;
+      border: 1px solid #FBBC04;
+      border-left: 4px solid #F29900;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .fail-num {
+      background: #F29900;
+      color: #fff;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+      flex-shrink: 0;
+    }
+    .fail-title { font-weight: 700; font-size: 14px; color: #333; margin-bottom: 3px; }
+    .fail-desc  { font-size: 13px; color: #5F6368; }
+
+    /* ===== FREQUENCY BADGES ===== */
+    .freq-badge {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .freq-badge.daily   { background: #E6F4EA; color: #1E8E3E; border: 1px solid #A8D5B5; }
+    .freq-badge.monthly { background: #E8F0FE; color: #1557B0; border: 1px solid #A8C4F5; }
+    .freq-badge.rare    { background: #F3E8FD; color: #7B1FA2; border: 1px solid #CE93D8; }
+
+    /* ===== MOBILE ADJUSTMENTS ===== */
+    @media (max-width: 600px) {
+      .main { padding: 14px 10px 60px; }
+      .section-header h2 { font-size: 14px; }
+      .hero h1 { font-size: 18px; }
+      .data-table { font-size: 12px; }
+      .data-table th, .data-table td { padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">SAP <span>GRC</span> AC</div>
+  <div class="progress-pill" id="prog-text">0% read</div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR TOC -->
+  <nav class="toc">
+    <h2>Contents</h2>
+    <a href="#post-install">Post Installation Checks</a>
+    <a href="#connector">Connector Configuration</a>
+    <a href="#sync-jobs">Sync Jobs</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <h1>SAP GRC Access Control</h1>
+      <p>Step-by-step learning notes covering Post Installation Checks, Connector Configuration, and Sync Jobs — based on real project experience.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">📋 Post Installation</span>
+        <span class="hero-tag">🔌 Connector Config</span>
+        <span class="hero-tag">🔄 Sync Jobs</span>
+        <span class="hero-tag">🎓 Interview Ready</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SECTION 1: POST INSTALLATION CHECKS
+    ════════════════════════════════════════════════════ -->
+    <div class="section-card" id="post-install">
+      <div class="section-header open" onclick="toggleSection(this)">
+        <div class="num">1</div>
+        <h2>Post Installation Checks (Pre-Checks)</h2>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body open">
+
+        <div class="box info">
+          <span class="icon">ℹ️</span>
+          <div>These checks are done right after GRC Access Control is installed to ensure all required components and settings are in place before going live.</div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 1</span>
+            <h3>Check Required Software Components</h3>
+          </div>
+          <p>Verify that all necessary GRC software components are installed in both systems.</p>
+
+          <table class="data-table">
+            <thead><tr><th>System</th><th>Required Component</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><strong>GRC System</strong></td><td><span class="tcode">GRCFND_A</span></td><td>Core GRC Foundation – Access Control</td></tr>
+              <tr><td><strong>Plug-in System (ECC)</strong></td><td><span class="tcode">GRCPINW</span></td><td>GRC Plug-in for the backend ECC system</td></tr>
+            </tbody>
+          </table>
+
+          <div class="path-trail">Login to GRC System → Top Menu → System → Installed Products</div>
+
+          <div class="img-block">
+            <img src="assets/images/img_01.png" alt="Installed Products screen showing GRC components" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 1 — Installed Products: verify GRCFND_A on GRC system and GRCPINW on plug-in system</div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 2</span>
+            <h3>Verify BC Set Activation (SCPR20)</h3>
+          </div>
+
+          <div class="box info">
+            <span class="icon">📘</span>
+            <div><strong>BC Set</strong> = Business Configuration Set — SAP pre-defined default/standard configuration values for GRC components.</div>
+          </div>
+
+          <p>Use T-code <span class="tcode">SCPR20</span> and confirm the following BC Sets are <strong>activated</strong>:</p>
+
+          <table class="data-table">
+            <thead><tr><th>BC Set Name</th><th>GRC Module</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tcode">ACCESS_REQUEST</span></td><td>ARM – Access Request Management</td></tr>
+              <tr><td><span class="tcode">ROLE_MGMT</span></td><td>BRM – Business Role Management</td></tr>
+              <tr><td><span class="tcode">RULESET</span></td><td>ARA – Access Risk Analysis</td></tr>
+              <tr><td><span class="tcode">SPM</span></td><td>EAM – Emergency Access Management</td></tr>
+            </tbody>
+          </table>
+
+          <div class="img-block">
+            <img src="assets/images/img_02.png" alt="SCPR20 BC Set activation screen" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 2 — SCPR20: BC Set activation list for GRC modules</div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 3</span>
+            <h3>Verify Services Activation (SICF)</h3>
+          </div>
+          <p>Use T-code <span class="tcode">SICF</span> to confirm all services related to <strong>GRAC</strong> and <strong>NWBC</strong> are activated. These services enable browser-based GRC access via NetWeaver Business Client.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 4</span>
+            <h3>Activate GRC Applications in Client</h3>
+          </div>
+
+          <div class="path-trail">SPRO → GRC → General Settings → Activate Applications in Client</div>
+
+          <p>Ensure <strong>GRC-AC (Access Control)</strong> is set to <strong>Active</strong>.</p>
+
+          <div class="img-block">
+            <img src="assets/images/img_03.png" alt="Activate applications in client – GRC-AC must be Active" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 3 — Activate Applications in Client: GRC-AC should show Active status</div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 5</span>
+            <h3>Perform Automatic Workflow Customizing</h3>
+          </div>
+
+          <div class="path-trail">SPRO → GRC → General Settings → Workflow → Perform Automatic Workflow Customizing</div>
+
+          <div class="box tip">
+            <span class="icon">✅</span>
+            <div><strong>All entries must show GREEN.</strong> If any item is red or yellow, contact the BASIS team immediately.</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_04.png" alt="Automatic Workflow Customizing – all green" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 4 — Automatic Workflow Customizing: everything must be GREEN</div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 6</span>
+            <h3>Perform Task-Specific Workflow Customizing</h3>
+          </div>
+
+          <div class="path-trail">SPRO → GRC → General Settings → Workflow → Perform Task-Specific Customizing</div>
+
+          <div class="box warn">
+            <span class="icon">⚠️</span>
+            <div>Every task must be defined as either <strong>Background Task</strong> or <strong>General Task</strong>. If any task entry is <em>empty</em>, set it as <strong>General Task</strong>.</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_05.png" alt="Task-Specific Workflow Customizing screen" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 5 — Task-Specific Customizing: task type assignment</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_06.png" alt="Task-Specific Customizing continued" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 6 — Task-Specific Customizing: all tasks must have a type defined</div>
+          </div>
+        </div>
+
+      </div><!-- /section-body -->
+    </div><!-- /section-card -->
+
+
+    <!-- ═══════════════════════════════════════════════════
+         SECTION 2: CONNECTOR CONFIGURATION
+    ════════════════════════════════════════════════════ -->
+    <div class="section-card" id="connector">
+      <div class="section-header open" onclick="toggleSection(this)">
+        <div class="num">2</div>
+        <h2>Connector Configuration</h2>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body open">
+
+        <div class="box warn">
+          <span class="icon">⚠️</span>
+          <div><strong>Prerequisite:</strong> You need a User ID in the Plug-in system (ECC) for RFC connectivity. The user must be of type <strong>SYSTEM</strong> or <strong>COMMUNICATION</strong> and should have the necessary RFC authorizations assigned. If a defined role is not available, you can assign <span class="tcode">SAP_ALL</span> — there is no risk because a SYSTEM/COMMUNICATION user cannot be used to log in interactively even if someone knows the password.</div>
+        </div>
+
+        <div class="box info">
+          <span class="icon">🔌</span>
+          <div><strong>Common path for Steps 1–3:</strong><br>
+          <code style="font-size:12px;">SPRO → GRC → Common Component Settings → Integration Framework</code></div>
+        </div>
+
+        <!-- Step 1: Create Connector -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 1</span>
+            <h3>Create Connector — SM59 (RFC Setup)</h3>
+          </div>
+          <p>Set up the RFC (Remote Function Call) connection between the Plug-in system (ECC) and the GRC system.</p>
+
+          <table class="data-table">
+            <thead><tr><th>System</th><th>System ID</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td><strong>GRC System</strong></td><td>GRC 100</td><td>Central governance system</td></tr>
+              <tr><td><strong>ECC (Plug-in)</strong></td><td>GRC 200</td><td>Backend target system</td></tr>
+            </tbody>
+          </table>
+
+          <p>In <span class="tcode">SM59</span>, select <strong>ABAP Connection</strong> and click <strong>Create</strong>.</p>
+
+          <div class="img-block">
+            <img src="assets/images/img_07.png" alt="SM59 – RFC connection overview" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 7 — SM59: RFC connection listing between GRC and ECC systems</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_08.png" alt="SM59 – RFC user type SYSTEM/COMMUNICATION" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 8a — RFC user configuration: must be SYSTEM or COMMUNICATION type</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_09.png" alt="SM59 – ABAP connection creation" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 8b — Selecting ABAP Connection type in SM59</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_10.png" alt="SM59 – connection details filled" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 9 — SM59: Entering connection details (target host, system number, logon info)</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_11.png" alt="SM59 – RFC test connection result" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 10 — SM59: Connection details — logon tab with RFC user credentials</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_12.png" alt="SM59 – connection test result success" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 11 — SM59: After saving, use the <em>Test</em> button (Utilities) to verify the RFC connection</div>
+          </div>
+        </div>
+
+        <!-- Step 2: Maintain Connectors and Connection Types -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 2</span>
+            <h3>Maintain Connectors and Connection Types</h3>
+          </div>
+          <p>This step has 5 sub-steps (a through e):</p>
+
+          <div class="note-list">
+            <li><strong>a) Define Connectors</strong> — The Source Connector and Logical Port must match the Target Connector name (the same SM59 RFC name).</li>
+            <li><strong>b) Define Subsequent Connector</strong> — Only required for JAVA systems. Not needed for ABAP systems. This is typically done by the BASIS team.</li>
+            <li><strong>c) Define Connector Groups</strong> — Create a connector group if needed. This allows you to manage configuration by <em>group</em> instead of system-by-system. For <strong>ARA</strong> and <strong>ARM</strong>, using connector groups is mandatory.</li>
+            <li><strong>d) Assign Connector Groups to Group Types</strong> — Set your connector group status as <strong>Logical Group</strong> for Access Control (AC). For Process Control (PC), select <em>Automated Monitoring Framework</em>.</li>
+            <li><strong>e) Assign Connectors to Connector Groups</strong> — Add the RFC connector to the appropriate group (e.g., ECC, BW, SD, Finance can all be placed under one group).</li>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_13.png" alt="Define Connectors screen" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 12 — Define Connector Groups: group name and group type assignment</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_14.png" alt="Assign Connector Groups – all 5 sub-steps" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 13 — All 5 sub-steps under Maintain Connectors and Connection Types</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_15.png" alt="Logical Group type assignment for AC" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 14 — After creating, assign the connector group as Logical Group (for AC)</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_16.png" alt="Connector group type: Logical Group selected" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 15a — Assign Connector Group to Type: select Logical Group for AC</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_17.png" alt="Logical port and connector assignment" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 15b — Logical Port must match the Target Connector name from SM59</div>
+          </div>
+
+          <div class="box info">
+            <span class="icon">💡</span>
+            <div>Make sure the <strong>Logical Port</strong> is maintained and matches the Target Connector you defined in SM59. Under one connector group, you can place multiple systems (ECC, BW, SD, Finance, etc.).</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_18.png" alt="Assign connectors to connector groups" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 16 — Assign Connectors to Connector Groups: add ECC (and other systems) to the group</div>
+          </div>
+        </div>
+
+        <!-- Step 3: Maintain Connection Settings -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 3</span>
+            <h3>Maintain Connection Settings (Integration Scenarios)</h3>
+          </div>
+
+          <div class="iq-box">
+            <div class="iq-label">🎓 Interview Question</div>
+            <div class="iq-q">How many integration scenarios are there under Connector Configuration?</div>
+            <div class="iq-a">There are <strong>4 integration scenarios</strong>:AUTH (ARA), PROV (ARM), ROLMG (BRM), and SUPMG (EAM).</div>
+          </div>
+
+          <table class="data-table">
+            <thead><tr><th>Scenario Code</th><th>Full Name</th><th>GRC Module</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tcode">AUTH</span></td><td>Authorization</td><td>ARA – Access Risk Analysis</td></tr>
+              <tr><td><span class="tcode">PROV</span></td><td>Provisioning</td><td>ARM – Access Request Management</td></tr>
+              <tr><td><span class="tcode">ROLMG</span></td><td>Role Management</td><td>BRM – Business Role Management</td></tr>
+              <tr><td><span class="tcode">SUPMG</span></td><td>Superuser Management</td><td>EAM – Emergency Access Management</td></tr>
+            </tbody>
+          </table>
+
+          <div class="img-block">
+            <img src="assets/images/img_19.png" alt="Connection Settings – integration scenarios list" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 17 — Maintain Connection Settings: 5 integration scenarios</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_20.png" alt="Connection Settings details" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 18 — Assign connector and connection type per scenario</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_21.png" alt="Connection Settings – additional scenarios" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 19 — All integration scenarios configured</div>
+          </div>
+        </div>
+
+        <!-- Step 4 & 5: Path change -->
+        <div class="box warn">
+          <span class="icon">🔀</span>
+          <div><strong>Path changes for Steps 4 and 5:</strong><br>
+          <code style="font-size:12px;">SPRO → GRC → Access Control</code></div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 4</span>
+            <h3>Maintain Connector Settings</h3>
+          </div>
+
+          <div class="path-trail">SPRO → GRC → Access Control → Maintain Connector Settings → Define Application Type, Environment and PSS</div>
+
+          <p><strong>PSS</strong> = Password Self Service. This is where you enable or configure password self-service for GRC.</p>
+
+          <div class="iq-box">
+            <div class="iq-label">🎓 Interview Question</div>
+            <div class="iq-q">Where do you enable Password Self Service (PSS) in GRC?</div>
+            <div class="iq-a">In Maintain Connector Settings under SPRO → GRC → Access Control. The setting is found in "Define Application Type, Environment and PSS."</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_22.png" alt="Maintain Connector Settings – PSS configuration" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 20 — Maintain Connector Settings: define App Type, Environment, and PSS (Password Self Service)</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_23.png" alt="PSS configuration details" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 21 — PSS (Password Self Service) configuration settings</div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">Step 5</span>
+            <h3>Maintain Mapping for Actions and Connector Groups</h3>
+          </div>
+
+          <div class="note-list">
+            <li><strong>a) Maintain Connector Group Status</strong> — Enter your connector group name and set it to <strong>Active</strong>.</li>
+            <li><strong>b) Assign Default Connector to Connector Group</strong> — Under one connector group, only <strong>1 system</strong> can act as the <strong>Default Connector</strong> for <strong>1 Action</strong>. All systems can be linked to 1 action, but only one is the default.</li>
+          </div>
+
+          <div class="box info">
+            <span class="icon">💡</span>
+            <div>Under one connector group, only <strong>one system</strong> can be the Default Connector for a given Action. Multiple systems can share an action, but only one holds the default role.</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_24.png" alt="Connector Group Status – Active" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 22 — Maintain Connector Group Status: set to Active</div>
+          </div>
+        </div>
+
+      </div><!-- /section-body -->
+    </div><!-- /section-card -->
+
+
+    <!-- ═══════════════════════════════════════════════════
+         SECTION 3: SYNC JOBS
+    ════════════════════════════════════════════════════ -->
+    <div class="section-card" id="sync-jobs">
+      <div class="section-header open" onclick="toggleSection(this)">
+        <div class="num">3</div>
+        <h2>Sync Jobs</h2>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body open">
+
+        <div class="box info">
+          <span class="icon">🔄</span>
+          <div><strong>Purpose:</strong> Sync Jobs are used to pull data from the Plug-in (ECC) system into the GRC system. The ECC data is not created in GRC — it is <em>identified</em> (recognized) in GRC by syncing it. Without sync, GRC cannot see ECC users, roles, or authorization objects.</div>
+        </div>
+
+        <div class="path-trail">SPRO → IMG Reference → GRC → Access Control → Sync Jobs</div>
+
+        <div class="img-block">
+          <img src="assets/images/img_25.png" alt="Sync Jobs – path in SPRO" onclick="openLightbox(this)" />
+          <div class="img-caption">Image 23 — Sync Jobs configuration in SPRO</div>
+        </div>
+
+        <!-- 7 Sync Job Types -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge green">7 Types</span>
+            <h3>Types of Sync Jobs</h3>
+          </div>
+
+          <table class="data-table">
+            <thead><tr><th>#</th><th>Sync Job</th><th>What It Syncs</th><th>System</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><strong>Authorization Sync</strong></td>
+                <td>T-codes, Authorization Objects, SU24 data</td>
+                <td>ABAP only (not JAVA)</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><strong>Repository Object Sync</strong></td>
+                <td>Users, Roles, and Profiles</td>
+                <td>ABAP + JAVA</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><strong>Action Usage Sync</strong></td>
+                <td>T-code usage data</td>
+                <td>ABAP</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><strong>Role Usage Sync</strong></td>
+                <td>Role assignment to users</td>
+                <td>ABAP</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><strong>Fire Fighter Log Sync</strong></td>
+                <td>FF ID usage logs from plug-in</td>
+                <td>EAM</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><strong>Fire Fighter Workflow Sync</strong></td>
+                <td>FF workflow for FF ID Controller review</td>
+                <td>EAM / ARM</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><strong>Fetch IDM Schema Sync</strong></td>
+                <td>All Portal/JAVA system data</td>
+                <td>JAVA only (IDM = Identity Management)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mandatory Jobs by System -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge orange">Mandatory</span>
+            <h3>Mandatory Jobs by System Type</h3>
+          </div>
+
+          <table class="data-table">
+            <thead><tr><th>System Type</th><th>Mandatory Sync Jobs</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ABAP System</strong></td><td>Job 1 (Authorization) + Job 2 (Repository Object)</td></tr>
+              <tr><td><strong>JAVA System</strong></td><td>Job 2 (Repository Object) + Job 7 (Fetch IDM Schema)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Jobs by GRC Component -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge purple">Component</span>
+            <h3>Sync Jobs by GRC Component</h3>
+          </div>
+
+          <table class="data-table">
+            <thead><tr><th>GRC Component</th><th>Required Sync Jobs</th><th>Note</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ARA</strong> (Access Risk Analysis)</td><td>1, 2, 7</td><td>Job 7 only for JAVA/Portal systems</td></tr>
+              <tr><td><strong>EAM</strong> (Emergency Access Mgmt)</td><td>5, 6</td><td>Firefighter logs and workflow</td></tr>
+              <tr><td><strong>Security Audit Reports</strong></td><td>3, 4</td><td>Usage tracking</td></tr>
+              <tr><td><strong>ARM</strong> (Access Request Mgmt)</td><td>6</td><td>FF workflow only</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Execution guidance -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge">How To</span>
+            <h3>How to Execute Sync Jobs</h3>
+          </div>
+
+          <div class="box danger">
+            <span class="icon">🚫</span>
+            <div><strong>Never execute sync jobs directly in foreground!</strong> Always run them in <strong>Background mode</strong> to avoid GRC system performance issues.</div>
+          </div>
+
+          <p>Go to the program/job and choose <strong>Execute in Background</strong>. Use T-code <span class="tcode">SM37</span> to monitor background job status.</p>
+
+          <div class="img-block">
+            <img src="assets/images/img_26.png" alt="Sync job – execute in background" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 24 — Sync Job: always choose Execute in Background, not foreground</div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_27.png" alt="SM37 – background job monitoring" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 25 — Repository Object Sync: Full Sync vs Incremental Mode options</div>
+          </div>
+
+          <div class="box info">
+            <span class="icon">📋</span>
+            <div>
+              <strong>Repository Object Sync</strong> runs in 2 modes:<br>
+              • <strong>Full Sync</strong> — Complete data load. Run the first time and once a month thereafter.<br>
+              • <strong>Incremental Mode</strong> — Only delta (changed) data. Run daily from the 2nd time onwards.
+            </div>
+          </div>
+
+          <div class="img-block">
+            <img src="assets/images/img_28.png" alt="SM37 job monitoring" onclick="openLightbox(this)" />
+            <div class="img-caption">Image 26 — SM37: Background Job Monitor — check sync job status here</div>
+          </div>
+        </div>
+
+        <!-- If Sync Job Fails -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge orange">Troubleshoot</span>
+            <h3>If a Sync Job Fails — Common Root Causes</h3>
+          </div>
+
+          <div class="box danger">
+            <span class="icon">🚨</span>
+            <div>When a sync job fails in SM37, check these 4 root causes in order:</div>
+          </div>
+
+          <div class="fail-cards">
+            <div class="fail-card">
+              <div class="fail-num">1</div>
+              <div class="fail-body">
+                <div class="fail-title">RFC Connection Problem</div>
+                <div class="fail-desc">Go to <span class="tcode">SM59</span>, open the RFC connection and click <strong>Test Connection</strong>. A failed ping here is the most common cause.</div>
+              </div>
+            </div>
+            <div class="fail-card">
+              <div class="fail-num">2</div>
+              <div class="fail-body">
+                <div class="fail-title">Post Installation Step 5 Incomplete</div>
+                <div class="fail-desc">Check that <em>Perform Automatic Workflow Customizing</em> was completed and shows all <strong>GREEN</strong>.</div>
+              </div>
+            </div>
+            <div class="fail-card">
+              <div class="fail-num">3</div>
+              <div class="fail-body">
+                <div class="fail-title">RFC User Missing Authorizations</div>
+                <div class="fail-desc">Ensure the RFC user in the ECC plug-in system has proper RFC authorizations. If needed, temporarily assign <span class="tcode">SAP_ALL</span> to test.</div>
+              </div>
+            </div>
+            <div class="fail-card">
+              <div class="fail-num">4</div>
+              <div class="fail-body">
+                <div class="fail-title">Connector Configuration — Integration Scenarios</div>
+                <div class="fail-desc">Verify all 5 integration scenarios (AUTH, PROV, ROLMG, SUPMG, PSS) are correctly maintained under Integration Framework.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sync Job Frequency -->
+        <div class="step">
+          <div class="step-title">
+            <span class="step-badge green">Schedule</span>
+            <h3>Frequency of Sync Jobs</h3>
+          </div>
+
+          <div class="box tip">
+            <span class="icon">📅</span>
+            <div>Schedule these jobs in <span class="tcode">SM36</span> or via background job configuration. Never leave them as manual — automation ensures GRC data stays current.</div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr><th>Sync Job</th><th>Frequency</th><th>Badge</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Authorization Sync</strong></td>
+                <td>Monthly</td>
+                <td><span class="freq-badge monthly">Monthly</span></td>
+              </tr>
+              <tr>
+                <td><strong>Repository Object Sync</strong></td>
+                <td>Daily (Incremental) / Monthly (Full)</td>
+                <td><span class="freq-badge daily">Daily</span></td>
+              </tr>
+              <tr>
+                <td><strong>Action Usage Sync</strong></td>
+                <td>Daily</td>
+                <td><span class="freq-badge daily">Daily</span></td>
+              </tr>
+              <tr>
+                <td><strong>Role Usage Sync</strong></td>
+                <td>Daily</td>
+                <td><span class="freq-badge daily">Daily</span></td>
+              </tr>
+              <tr>
+                <td><strong>Fire Fighter Log Sync</strong></td>
+                <td>Daily</td>
+                <td><span class="freq-badge daily">Daily</span></td>
+              </tr>
+              <tr>
+                <td><strong>Fire Fighter Workflow Sync</strong></td>
+                <td>Daily</td>
+                <td><span class="freq-badge daily">Daily</span></td>
+              </tr>
+              <tr>
+                <td><strong>Fetch IDM Schema Sync</strong></td>
+                <td>Half-yearly or Annually</td>
+                <td><span class="freq-badge rare">Half-yearly</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div><!-- /section-body -->
+    </div><!-- /section-card -->
+
+  </main><!-- /main -->
+</div><!-- /layout -->
+
+<!-- BACK TO TOP -->
+<a id="btt" href="#" title="Back to top">↑</a>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lb-close" onclick="closeLightbox()">✕</span>
+  <img id="lb-img" src="" alt="" />
+  <div class="lb-caption" id="lb-caption"></div>
+</div>
+
+<script>
+  /* ===== SECTION TOGGLE ===== */
+  function toggleSection(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    header.classList.toggle('open', !isOpen);
+  }
+
+  /* ===== LIGHTBOX ===== */
+  function openLightbox(img) {
+    document.getElementById('lb-img').src = img.src;
+    document.getElementById('lb-caption').textContent = img.alt;
+    document.getElementById('lightbox').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+  /* ===== PROGRESS BAR + BACK-TO-TOP ===== */
+  const bar = document.getElementById('progress-bar');
+  const btt = document.getElementById('btt');
+  const progText = document.getElementById('prog-text');
+
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+    bar.style.width = pct + '%';
+    progText.textContent = pct + '% read';
+    btt.classList.toggle('show', scrolled > 300);
+  });
+
+  /* ===== TOC ACTIVE STATE ===== */
+  const sections = document.querySelectorAll('.section-card');
+  const tocLinks = document.querySelectorAll('.toc a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
