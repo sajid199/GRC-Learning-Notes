@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP Access Risk Analysis – Study Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,600;1,400&display=swap');
+
+  :root {
+    --bg:        #f5f7fa;
+    --surface:   #ffffff;
+    --card:      #ffffff;
+    --border:    #e2e8f0;
+    --accent:    #2563eb;
+    --accent2:   #d97706;
+    --accent3:   #059669;
+    --red:       #dc2626;
+    --text:      #1e293b;
+    --muted:     #64748b;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'Inter', sans-serif;
+    --serif:     'Lora', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-bottom: 1px solid #bfdbfe;
+    padding: 48px 24px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(37,99,235,.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(37,99,235,.1);
+    border: 1px solid rgba(37,99,235,.3);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(28px, 5vw, 46px);
+    line-height: 1.2;
+    color: #1e293b;
+    margin-bottom: 12px;
+  }
+  header h1 span { color: var(--accent); font-style: italic; }
+  header p {
+    color: var(--muted);
+    max-width: 540px;
+    margin: 0 auto;
+    font-size: 14px;
+  }
+
+  /* ── NAV TABS ── */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 16px 24px 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px 12px;
+    transition: color .2s, border-color .2s;
+    white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--accent); border-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: #1e293b; }
+
+  /* ── CONTENT ── */
+  main { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 20px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: .02em;
+  }
+  p { color: var(--muted); margin-bottom: 14px; }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .card-accent-l { border-left: 3px solid var(--accent); }
+  .card-accent-o { border-left: 3px solid var(--accent2); }
+  .card-accent-g { border-left: 3px solid var(--accent3); }
+  .card-accent-r { border-left: 3px solid var(--red); }
+
+  /* ── EVOLUTION TIMELINE ── */
+  .evolution {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 36px;
+    margin-bottom: 28px;
+  }
+  .evolution::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--accent3));
+  }
+  .evo-item {
+    position: relative;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .evo-item::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid #f5f7fa;
+  }
+  .evo-item:nth-child(2)::before { background: var(--accent2); }
+  .evo-item:nth-child(3)::before { background: var(--accent3); }
+  .evo-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .evo-name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .evo-product {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+
+  /* ── CODE / TCODE PILL ── */
+  .pill {
+    display: inline-block;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 4px;
+    margin: 2px;
+  }
+  .pill-o { background: #fffbeb; border-color: #fde68a; color: var(--accent2); }
+  .pill-g { background: #ecfdf5; border-color: #a7f3d0; color: var(--accent3); }
+  .pill-r { background: #fef2f2; border-color: #fecaca; color: var(--red); }
+
+  /* ── RISK LEVEL BARS ── */
+  .risk-levels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .risk-level {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .risk-level::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .risk-level.low::after   { background: #059669; }
+  .risk-level.med::after   { background: #d97706; }
+  .risk-level.high::after  { background: #ea580c; }
+  .risk-level.crit::after  { background: #dc2626; }
+  .risk-label { font-weight: 700; font-size: 13px; letter-spacing: .04em; margin-bottom: 4px; }
+  .risk-label.low  { color: #059669; }
+  .risk-label.med  { color: #d97706; }
+  .risk-label.high { color: #ea580c; }
+  .risk-label.crit { color: #dc2626; }
+  .risk-desc { font-size: 12px; color: var(--muted); }
+
+  /* ── SOD MATRIX ── */
+  .sod-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .sod-cell {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .sod-combo {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 6px;
+  }
+  .sod-note { font-size: 12px; color: var(--muted); }
+
+  /* ── INTERVIEW Q&A ── */
+  .qa-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .qa-q {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .2s;
+  }
+  .qa-q:hover { background: #f8fafc; }
+  .qa-q-icon {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qa-q-text { font-weight: 500; font-size: 14px; color: var(--text); flex: 1; padding-top: 3px; }
+  .qa-chevron {
+    flex-shrink: 0;
+    color: var(--muted);
+    font-size: 16px;
+    transition: transform .3s;
+    padding-top: 2px;
+  }
+  .qa-item.open .qa-chevron { transform: rotate(180deg); }
+  .qa-a {
+    display: none;
+    padding: 0 20px 18px 58px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.75;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .qa-item.open .qa-a { display: block; }
+  .qa-a strong { color: var(--accent3); }
+  .qa-a ul { padding-left: 18px; margin-top: 8px; }
+  .qa-a li { margin-bottom: 6px; }
+
+  /* ── PROCESS STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 12px; }
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-body h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .step-body p  { font-size: 13px; color: var(--muted); margin: 0; }
+  .step-path {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent2);
+    margin-top: 4px;
+  }
+
+  /* ── TAGS ROW ── */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+
+  /* ── TABLE ── */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  .tbl th {
+    background: #eff6ff;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl tr:hover td { background: #f8fafc; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    color: #065f46;
+  }
+  .highlight strong { color: #065f46; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .sod-matrix, .risk-levels { grid-template-columns: 1fr; }
+    .evolution { padding-left: 28px; }
+    .tab-btn { padding: 10px 12px 12px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">🔐 SAP GRC</div>
+  <h1>Access <span>Risk Analysis</span></h1>
+  <p>From VIRSA Compliance Calibrator to GRC 10.x ARA — concepts, rules, and interview answers, all in one place.</p>
+</header>
+
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="tab-btn" onclick="switchTab('concepts',this)">Core Concepts</button>
+  <button class="tab-btn" onclick="switchTab('sod',this)">SOD Risk</button>
+  <button class="tab-btn" onclick="switchTab('ruleset',this)">Rule Set</button>
+  <button class="tab-btn" onclick="switchTab('risktypes',this)">Risk Types</button>
+  <button class="tab-btn" onclick="switchTab('interview',this)">Interview Q&amp;A</button>
+</nav>
+
+<main>
+
+  <!-- ═══ TAB 1: OVERVIEW ═══ -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="section-title">Evolution</div>
+    <h2>Product History</h2>
+
+    <div class="evolution">
+      <div class="evo-item">
+        <div class="evo-label">VIRSA 4.0</div>
+        <div class="evo-name">Compliance Calibrator</div>
+        <div class="evo-product">CC — The original access-risk product</div>
+      </div>
+      <div class="evo-item">
+        <div class="evo-label">GRC AC 5.3</div>
+        <div class="evo-name">Risk Analysis &amp; Remediation</div>
+        <div class="evo-product">RAR — SAP acquired VIRSA, rebranded &amp; extended</div>
+      </div>
+      <div class="evo-item">
+        <div class="evo-label">GRC AC 10 / 10.1 onwards</div>
+        <div class="evo-name">Access Risk Analysis</div>
+        <div class="evo-product">ARA — Current generation, NWBC-based</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Simple way to remember:</strong> CC → RAR → ARA. Each generation added more granular permission-level analysis, workflow, and global rule set management.
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">What is Risk?</div>
+    <h2>Understanding Risk</h2>
+
+    <div class="card card-accent-l">
+      <h3>Definition</h3>
+      <p>A <strong>risk</strong> is anything that can negatively impact your business — either <strong>financially</strong> (loss of money, fraud) or <strong>reputationally</strong> (loss of trust, audit findings).</p>
+    </div>
+
+    <div class="card card-accent-o">
+      <h3>Probability</h3>
+      <p>Risk is measured by how likely it is to happen. Probability depends on <strong>experience</strong> — your own or someone else's.</p>
+      <p style="margin:0">Example: Betting on a coin flip = <strong>50% probability</strong> of losing.</p>
+    </div>
+
+    <div class="card card-accent-g">
+      <h3>Risk is NOT Universal</h3>
+      <p>Risk depends on <strong>local factors</strong> — it varies from company to company and country to country. A risk relevant to a bank may not apply to a retail company.</p>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Risk Lifecycle</div>
+    <h2>What Do You Do with a Risk?</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Risk Identification — Risk Analysis</h4>
+          <p>Find out what risks exist in your system. Run access risk analysis to detect them.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Risk Remediation — Remove or Avoid</h4>
+          <p>Take the conflicting access away from the user. Fix the root cause so the risk no longer exists.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Risk Mitigation — Reduce the Impact</h4>
+          <p>If you cannot remove the access, put controls in place (manual checks, approvals, monitoring) to reduce the damage if the risk occurs.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 2: CONCEPTS ═══ -->
+  <div class="tab-panel" id="tab-concepts">
+    <div class="section-title">Building Blocks</div>
+    <h2>Key Terms Explained Simply</h2>
+
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Term</th>
+          <th>What It Means in Plain English</th>
+          <th>SAP Object</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill">Action</span></td>
+          <td>Something a user can <em>do</em> in SAP — a specific task or transaction.</td>
+          <td>T-code (e.g. <span class="pill">FB60</span>)</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-o">Permission</span></td>
+          <td>The <em>level of access</em> within that action — what fields the user can touch and how.</td>
+          <td>Authorization Object + Field Values</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-g">Function</span></td>
+          <td>A logical group of related actions — a business activity like "Process Vendor Payments."</td>
+          <td>GRC Function (groups T-codes)</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-r">Risk</span></td>
+          <td>When two conflicting functions are assigned to the same user — the danger that creates.</td>
+          <td>GRC Risk (links two functions)</td>
+        </tr>
+        <tr>
+          <td><span class="pill">Rule Set</span></td>
+          <td>A collection of defined risks grouped together for analysis.</td>
+          <td>GRC Rule Set</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr class="divider">
+    <div class="section-title">Risk Levels</div>
+    <h2>Impact-Based Classification</h2>
+    <p>Every risk in GRC is rated based on <strong>how badly it could hurt the business</strong>.</p>
+
+    <div class="risk-levels">
+      <div class="risk-level low">
+        <div class="risk-label low">LOW</div>
+        <div class="risk-desc">Minor impact. Unlikely to cause financial loss. Still flagged for awareness.</div>
+      </div>
+      <div class="risk-level med">
+        <div class="risk-label med">MEDIUM</div>
+        <div class="risk-desc">Moderate impact. Could cause issues if exploited but not immediately dangerous.</div>
+      </div>
+      <div class="risk-level high">
+        <div class="risk-label high">HIGH</div>
+        <div class="risk-desc">Significant impact. Likely to cause financial loss or audit failure.</div>
+      </div>
+      <div class="risk-level crit">
+        <div class="risk-label crit">CRITICAL</div>
+        <div class="risk-desc">Severe impact. Can cause major fraud, regulatory breach, or reputational damage.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 3: SOD ═══ -->
+  <div class="tab-panel" id="tab-sod">
+    <div class="section-title">Segregation of Duties</div>
+    <h2>SOD Risk Explained</h2>
+
+    <div class="card card-accent-r">
+      <h3>What is an SOD Risk?</h3>
+      <p>SOD = <strong>Segregation of Duties</strong>. It means certain tasks should be done by <em>different people</em>, not one person alone. When one user has access to both, a risk (the opportunity for fraud or error) exists.</p>
+      <p style="margin:0"><strong>Classic Example:</strong> The person who <em>receives payment</em> (T1) should NOT also be the person who can <em>adjust payments</em> (T2). If one user has both → SOD Risk.</p>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Two Analysis Levels</div>
+    <h2>Where Can SOD be Detected?</h2>
+
+    <div class="sod-matrix">
+      <div class="sod-cell">
+        <div class="sod-combo">Action Level</div>
+        <div class="sod-note">Does the user have <strong>both T-codes</strong>? Checks at the transaction level regardless of auth values.</div>
+        <div class="tags" style="justify-content:center;margin-top:10px">
+          <span class="pill pill-o">T1 + T2 exists</span>
+        </div>
+      </div>
+      <div class="sod-cell">
+        <div class="sod-combo">Permission Level</div>
+        <div class="sod-note">Does the user have <strong>both T-codes AND the auth values</strong> that allow real execution?</div>
+        <div class="tags" style="justify-content:center;margin-top:10px">
+          <span class="pill">T1 (Full)</span><span class="pill">T2 (Full)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-accent-l">
+      <h3>Permission Level Combinations (for Action Level)</h3>
+      <p>At action level, a risk is checked across all combinations of Display (D) and Full (F) access:</p>
+      <div class="tags">
+        <span class="pill pill-o">T1D + T2D</span>
+        <span class="pill pill-o">T1F + T2D</span>
+        <span class="pill pill-o">T1D + T2F</span>
+        <span class="pill pill-r">T1F + T2F</span>
+      </div>
+      <p style="margin-top:12px;font-size:13px"><strong>D = Display only</strong> &nbsp;|&nbsp; <strong>F = Full / Change access</strong><br>
+      T1F + T2F is the highest-risk combination (full access to both conflicting actions).</p>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 4: RULE SET ═══ -->
+  <div class="tab-panel" id="tab-ruleset">
+    <div class="section-title">Global Rule Set</div>
+    <h2>Where Do Risks Come From?</h2>
+
+    <div class="card card-accent-g">
+      <h3>How Was the Global Rule Set Created?</h3>
+      <p>SAP studied large, reputed companies across industries — <strong>Banking, Automobile, Retail, Manufacturing</strong> etc. — and collected the risks those companies actually faced over decades.</p>
+      <p style="margin:0">These risks were documented, categorized by <strong>business process</strong> (Finance, HR, Sales, Procurement…), and packaged as the <strong>Global Rule Set</strong>.</p>
+    </div>
+
+    <div class="highlight">
+      <strong>In short:</strong> Global Rule Set = 100+ years of real-world business risk experience, packed into GRC, ready to use.
+    </div>
+
+    <div class="card card-accent-o">
+      <h3>How Is It Loaded?</h3>
+      <p>The Global Rule Set data is loaded into your GRC system using <strong>BC Sets</strong> (Business Configuration Sets) related to RULESET activation. This is done during implementation.</p>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Custom Rule Set</div>
+    <h2>Creating Your Own Rule Set</h2>
+    <p>Not every risk in the Global Rule Set applies to your company. You may also have risks specific to your business. For this, you create a <strong>Custom Rule Set</strong>.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Create the Rule Set</h4>
+          <p>Define the container that will hold your custom risks.</p>
+          <div class="step-path">NWBC → Setup → Access Rule Maintenance → Rule Set</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Define Business Processes</h4>
+          <p>Categorize risks by business process (Finance, HR, Sales…) in SPRO.</p>
+          <div class="step-path">SPRO → GRC → Access Control → Maintain Business Process and Sub Processes</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Create Functions</h4>
+          <p>A Function = a business activity that groups related T-codes. You need at least two conflicting functions to define an SOD risk.</p>
+          <div class="step-path">NWBC → Setup → Access Rule Maintenance → Functions</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Define Risks</h4>
+          <p>Combine two conflicting functions into a Risk. Assign risk type and level. Assign to your rule set.</p>
+          <div class="step-path">NWBC → Setup → Access Rule Maintenance → Risks</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 5: RISK TYPES ═══ -->
+  <div class="tab-panel" id="tab-risktypes">
+    <div class="section-title">Classification</div>
+    <h2>Three Types of Risk in GRC</h2>
+
+    <div class="card card-accent-r">
+      <h3>1. SOD Risk — Segregation of Duties</h3>
+      <p>Occurs when one user has access to <strong>two conflicting functions</strong>. These are things that should always be done by separate people.</p>
+      <div class="tags">
+        <span class="pill pill-r">SU01 + PFCG</span>
+        <span class="pill pill-r">SCC4 + STMS</span>
+      </div>
+      <p style="margin-top:12px;font-size:13px;margin-bottom:0">SU01 = Create users, PFCG = Maintain roles → One person doing both = access management risk.<br>
+      SCC4 = Manage clients, STMS = Transport management → One person doing both = change management risk.</p>
+    </div>
+
+    <div class="card card-accent-o">
+      <h3>2. Critical Action Risk</h3>
+      <p>A <strong>single T-code</strong> that is so powerful it is dangerous on its own — regardless of who else has it. Just having it is the risk.</p>
+      <div class="tags">
+        <span class="pill pill-o">SCC4</span>
+        <span class="pill pill-o">SCC5</span>
+        <span class="pill pill-o">SE38</span>
+        <span class="pill pill-o">SPRO</span>
+      </div>
+      <p style="margin-top:12px;font-size:13px;margin-bottom:0">SE38 = ABAP editor (can run or modify programs) &nbsp;|&nbsp; SCC4 = Client settings (can open/lock clients)</p>
+    </div>
+
+    <div class="card card-accent-l">
+      <h3>3. Critical Permission Risk</h3>
+      <p>Not just having the T-code, but having it with <strong>specific high-risk authorization values</strong>. This is more granular than Critical Action.</p>
+
+      <table class="tbl" style="margin-top:12px">
+        <thead>
+          <tr><th>T-code</th><th>Auth Object</th><th>Risky Activity Values</th><th>Why Risky</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill">SCC4</span></td>
+            <td><span class="pill pill-o">S_TABU_DIS</span></td>
+            <td>Activity <strong>01</strong> (Create) or <strong>02</strong> (Change)</td>
+            <td>Can modify client-level system tables</td>
+          </tr>
+          <tr>
+            <td><span class="pill">SE38</span></td>
+            <td><span class="pill pill-o">S_DEVELOP</span></td>
+            <td>Activity <strong>01</strong> (Create) or <strong>02</strong> (Change)</td>
+            <td>Can write or modify ABAP programs</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="highlight" style="margin-top:12px">
+        <strong>Key rule:</strong> Wherever you see a <em>T-code</em> in a risk definition, treat it as an <strong>Action</strong>. Wherever you see an <em>authorization object + field values</em>, treat it as a <strong>Permission</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 6: INTERVIEW ═══ -->
+  <div class="tab-panel" id="tab-interview">
+    <div class="section-title">Interview Prep</div>
+    <h2>Common Questions &amp; Model Answers</h2>
+    <p>Click each question to expand a clear, concise answer you can say naturally in an interview.</p>
+
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">Are you using Global Rule Sets or Custom Rule Sets in your company?</div>
+        <div class="qa-chevron">▾</div>
+      </div>
+      <div class="qa-a">
+        <strong>Model Answer:</strong><br><br>
+        "In our project, we started with the <strong>Global Rule Set</strong> provided by SAP as the baseline — it covers standard industry risks across Finance, HR, and Procurement processes. However, we also created <strong>Custom Rule Sets</strong> to address risks that are specific to our business environment. For example, some T-codes in our custom ERP landscape are not covered by the Global Rule Set, so we defined custom functions and risks for those. In most real implementations, you use a mix of both."
+        <ul style="margin-top:10px">
+          <li>If you have only used Global — be honest and say so, but mention you understand how to create custom ones.</li>
+          <li>Global Rule Set is loaded via <strong>BC Sets</strong> during implementation.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">Have you created a custom risk? Walk me through the steps.</div>
+        <div class="qa-chevron">▾</div>
+      </div>
+      <div class="qa-a">
+        <strong>Model Answer:</strong><br><br>
+        "Yes. The steps to create a custom risk are:
+        <ul>
+          <li><strong>Step 1 — Rule Set:</strong> Create a rule set in NWBC → Setup → Access Rule Maintenance → Rule Set. This is the container.</li>
+          <li><strong>Step 2 — Business Process:</strong> Define or reuse a business process via SPRO → GRC → Access Control → Maintain Business Process and Sub Processes.</li>
+          <li><strong>Step 3 — Functions:</strong> Create two functions (e.g., Payment Processing and Payment Adjustment) and assign the relevant T-codes to each function.</li>
+          <li><strong>Step 4 — Risk:</strong> Create a risk that links the two conflicting functions, assign a risk type (SOD/Critical Action/Critical Permission) and a risk level (Low/Medium/High/Critical), and map it to the rule set.</li>
+        </ul>
+        After this, the risk is ready to be used in access risk analysis runs."
+      </div>
+    </div>
+
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">What is the difference between Action Level and Permission Level analysis?</div>
+        <div class="qa-chevron">▾</div>
+      </div>
+      <div class="qa-a">
+        <strong>Model Answer:</strong><br><br>
+        "<strong>Action Level</strong> checks whether a user has both T-codes assigned — it doesn't look at the authorization values inside. It tells you the T-code combination exists.<br><br>
+        <strong>Permission Level</strong> goes deeper — it checks whether the user has the T-code <em>and</em> the authorization values that allow them to actually execute the conflicting activity. It is more accurate but heavier to run.<br><br>
+        In practice, Action Level gives quick results; Permission Level is used when you need precise, audit-quality reports."
+      </div>
+    </div>
+
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">What are the three types of risk in SAP GRC Access Control?</div>
+        <div class="qa-chevron">▾</div>
+      </div>
+      <div class="qa-a">
+        <strong>Model Answer:</strong><br><br>
+        <ul>
+          <li><strong>SOD Risk:</strong> Two conflicting functions assigned to the same user. E.g., User Creation (SU01) + Role Maintenance (PFCG). The risk is that one person can create a user and give them any roles they want.</li>
+          <li><strong>Critical Action Risk:</strong> A single T-code that is risky by itself. E.g., SE38 (ABAP editor) — anyone with this can write or modify programs, which is dangerous in a production system.</li>
+          <li><strong>Critical Permission Risk:</strong> A T-code combined with specific authorization values. E.g., SE38 + S_DEVELOP with Activity 01 or 02 — more precise than just having SE38.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">What is the difference between Risk Remediation and Risk Mitigation?</div>
+        <div class="qa-chevron">▾</div>
+      </div>
+      <div class="qa-a">
+        <strong>Model Answer:</strong><br><br>
+        "<strong>Remediation</strong> means you <em>remove</em> the risk. You take away the conflicting access — the risk no longer exists in the system.<br><br>
+        <strong>Mitigation</strong> means you <em>cannot remove</em> the access (maybe the business needs it), so instead you put manual controls in place — like a manager reviewing the activity every month, or a monitoring job — to reduce the impact if something goes wrong.<br><br>
+        Remediation is always preferred. Mitigation is the fallback when remediation is not possible."
+      </div>
+    </div>
+
+    <div class="qa-item" onclick="toggleQA(this)">
+      <div class="qa-q">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">What is the Global Rule Set and how is it loaded?</div>
+        <div class="qa-chevron">▾</div>
+      </div>
+      <div class="qa-a">
+        <strong>Model Answer:</strong><br><br>
+        "The Global Rule Set is a pre-built collection of SOD and critical access risks that SAP has compiled by studying large, reputed companies across industries — banking, retail, manufacturing, etc. — over many decades. It covers standard business processes like Finance, HR, Sales, and Procurement.<br><br>
+        It is loaded into your GRC system using <strong>BC Sets</strong> (Business Configuration Sets) related to RULESET activation. This is typically done during the initial implementation or system setup."
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function toggleQA(item) {
+    item.classList.toggle('open');
+  }
+</script>
+</body>
+</html>
